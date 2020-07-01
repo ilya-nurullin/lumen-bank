@@ -83,10 +83,7 @@ class BankController extends Controller
         try {
             $res = $this->bankRepository->createAccount(new Account($accountNumber), $initialBalance);
             if ($res)
-                return [
-                    'accountNumber'  => $accountNumber,
-                    'initialBalance' => $initialBalance,
-                ];
+                return ['status' => 'ok'];
             else
                 return response()->json(['status' => 'failed'], 500);
         } catch (\Exception $e) {

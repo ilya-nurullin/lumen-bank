@@ -124,7 +124,7 @@ class BankControllerTest extends TestCase
         ]));
 
         $response->assertResponseOk();
-        $response->seeJsonStructure(['accountNumber', 'initialBalance']);
+        $response->seeJson(['status' => 'ok']);
         $this->assertEquals($initialBalance, $this->bankRepository->getBalance(new Account($newAccountNumber)));
     }
 
