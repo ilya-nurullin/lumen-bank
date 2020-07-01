@@ -42,7 +42,7 @@ class BankController extends Controller
     {
         $this->validate($request, [
             'from'   => 'required',
-            'to'     => 'required',
+            'to'     => ['required', 'different:from'],
             'amount' => [
                 'required',
                 new Decimal(),

@@ -72,6 +72,17 @@ class BankControllerTest extends TestCase
         $response->seeJsonStructure(['amount']);
     }
 
+    public function testMakeTransactionToSelf()
+    {
+        $response = $this->post(route('bank.transaction'), [
+            'from' => '2',
+            'to' => '2',
+            'amount' => '3'
+        ]);
+        $response->assertResponseStatus(422);
+        $response->seeJsonStructure(['to', 'amount']);
+    }
+
     public function testMakeTransactionNotEnoughMoney()
     {
         $response = $this->post(route('bank.transaction'), [
