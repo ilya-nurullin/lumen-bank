@@ -8,7 +8,7 @@ class AccountsSeeder extends Seeder
     {
         $values = [];
 
-        for ($i = 1; $i < 15001; ++$i) {
+        for ($i = 1; $i < 5000; ++$i) {
             $values[] = "('$i', 15000)";
         }
 
