@@ -15,8 +15,7 @@ class CreateAccountsTable extends Migration
     {
         Schema::create('accounts', function (Blueprint $table) {
             $table->string('account_number');
-            $table->decimal('balance');
-            $table->timestamps();
+            $table->decimal('balance', 10, 2);
 
             $table->primary('account_number');
         });

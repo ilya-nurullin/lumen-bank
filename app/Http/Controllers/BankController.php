@@ -1,0 +1,96 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Bank\Models\Account;
+use App\Bank\Models\Amount;
+use App\Exceptions\BankAccountDoesNotExist;
+use App\Exceptions\NotEnoughMoney;
+use App\Repositories\BankRepository;
+use App\Rules\Decimal;
+use Illuminate\Http\Request;
+
+class BankController extends Controller
+{
+    /**
+     * @var BankRepository
+     */
+    private $bankRepository;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @param BankRepository $bankRepository
+     */
+    public function __construct(BankRepository $bankRepository)
+    {
+        $this->bankRepository = $bankRepository;
+    }
+
+    public function getBalance($accountNumber)
+    {
+        try {
+            $balance = $this->bankRepository->getBalance(new Account($accountNumber));
+
+            return ['balance' => $balance];
+        } catch (BankAccountDoesNotExist $e) {
+            return response()->json(['error' => $e->getMessage()], 404);
+        }
+    }
+
+    public function transaction(Request $request)
+    {
+        $this->validate($request, [
+            'from'   => 'required',
+            'to'     => 'required',
+            'amount' => [
+                'required',
+                new Decimal(),
+            ],
+        ]);
+
+        try {
+            $amount = Amount::fromString(\request('amount'));
+            $accountNumberFrom = \request('from');
+            $accountNumberTo = \request('to');
+
+            $this->bankRepository->makeTransaction(new Account($accountNumberFrom), new Account($accountNumberTo),
+                $amount);
+
+            return ['status' => 'ok'];
+        } catch (BankAccountDoesNotExist $e) {
+            return response()->json(['error' => $e->getMessage()], 404);
+        } catch (NotEnoughMoney $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        } catch (\Throwable $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function createAccount(Request $request)
+    {
+        $this->validate($request, [
+            'accountNumber'  => 'required',
+            'initialBalance' => [
+                'required',
+                new Decimal(),
+            ],
+        ]);
+        $accountNumber = $request->input('accountNumber');
+        $initialBalance = Amount::fromString($request->input('initialBalance'));
+
+
+        try {
+            $res = $this->bankRepository->createAccount(new Account($accountNumber), $initialBalance);
+            if ($res)
+                return [
+                    'accountNumber'  => $accountNumber,
+                    'initialBalance' => $initialBalance,
+                ];
+            else
+                return response()->json(['status' => 'failed'], 500);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
+    }
+}

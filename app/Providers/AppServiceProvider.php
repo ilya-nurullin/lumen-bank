@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Repositories\BankRepository;
+use App\Repositories\SQLBankRepository;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -13,6 +15,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        $this->app->singleton(BankRepository::class, SQLBankRepository::class);
     }
 }
