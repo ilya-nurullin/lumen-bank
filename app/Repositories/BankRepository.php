@@ -4,8 +4,8 @@ namespace App\Repositories;
 
 use App\Bank\Models\Account;
 use App\Bank\Models\Amount;
-use App\Exceptions\BankAccountDoesNotExist;
-use App\Exceptions\NotEnoughMoney;
+use App\Exceptions\BankAccountDoesNotExistException;
+use App\Exceptions\NotEnoughMoneyException;
 
 interface BankRepository
 {
@@ -15,7 +15,7 @@ interface BankRepository
      * @param Account $account
      *
      * @return string Decimal as string
-     * @throws BankAccountDoesNotExist
+     * @throws BankAccountDoesNotExistException
      */
     public function getBalance(Account $account): string;
 
@@ -25,9 +25,10 @@ interface BankRepository
      * @param Account $from
      * @param Account $to
      * @param Amount $amount
+     *
      * @return mixed
      *
-     * @throws BankAccountDoesNotExist|NotEnoughMoney|\Throwable
+     * @throws BankAccountDoesNotExistException|NotEnoughMoneyException|\Throwable
      */
     public function makeTransaction(Account $from, Account $to, Amount $amount);
 

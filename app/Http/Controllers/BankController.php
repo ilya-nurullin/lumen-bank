@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Bank\Models\Account;
 use App\Bank\Models\Amount;
-use App\Exceptions\BankAccountDoesNotExist;
-use App\Exceptions\NotEnoughMoney;
+use App\Exceptions\BankAccountDoesNotExistException;
+use App\Exceptions\CreateAccountException;
+use App\Exceptions\NotEnoughMoneyException;
 use App\Repositories\BankRepository;
 use App\Rules\Decimal;
 use Illuminate\Http\Request;
@@ -33,7 +34,7 @@ class BankController extends Controller
             $balance = $this->bankRepository->getBalance(new Account($accountNumber));
 
             return ['balance' => $balance];
-        } catch (BankAccountDoesNotExist $e) {
+        } catch (BankAccountDoesNotExistException $e) {
             return response()->json(['error' => $e->getMessage()], 404);
         }
     }
@@ -58,9 +59,9 @@ class BankController extends Controller
                 $amount);
 
             return ['status' => 'ok'];
-        } catch (BankAccountDoesNotExist $e) {
+        } catch (BankAccountDoesNotExistException $e) {
             return response()->json(['error' => $e->getMessage()], 404);
-        } catch (NotEnoughMoney $e) {
+        } catch (NotEnoughMoneyException $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         } catch (\Throwable $e) {
             app('log')->error($e->getMessage(), $e->getTrace());
@@ -87,9 +88,11 @@ class BankController extends Controller
                 return ['status' => 'ok'];
             else
                 return response()->json(['status' => 'failed'], 500);
+        } catch (CreateAccountException $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
         } catch (\Exception $e) {
             app('log')->error($e->getMessage(), $e->getTrace());
-            return response()->json(['error' => 'Internal Server Error'], 400);
+            return response()->json(['error' => 'Internal Server Error'], 500);
         }
     }
 }

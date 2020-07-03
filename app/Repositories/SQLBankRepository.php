@@ -4,8 +4,9 @@ namespace App\Repositories;
 
 use App\Bank\Models\Account;
 use App\Bank\Models\Amount;
-use App\Exceptions\BankAccountDoesNotExist;
-use App\Exceptions\NotEnoughMoney;
+use App\Exceptions\BankAccountDoesNotExistException;
+use App\Exceptions\CreateAccountException;
+use App\Exceptions\NotEnoughMoneyException;
 
 class SQLBankRepository implements BankRepository
 {
@@ -37,7 +38,7 @@ class SQLBankRepository implements BankRepository
             $toAccountNumber = $to->getAccountNumber();
 
             if (Amount::fromString($this->getBalance($from))->isLessThan($amount)) {
-                throw new NotEnoughMoney($fromAccountNumber);
+                throw new NotEnoughMoneyException($fromAccountNumber);
             }
 
             if ($from->getAccountNumber() > $to->getAccountNumber()) {
@@ -63,7 +64,7 @@ class SQLBankRepository implements BankRepository
      * @param Account $account
      *
      * @return string
-     * @throws BankAccountDoesNotExist
+     * @throws BankAccountDoesNotExistException
      */
     public function getBalance(Account $account): string
     {
@@ -73,7 +74,7 @@ class SQLBankRepository implements BankRepository
             [$accountNumber]);
 
         if (is_null($accountBalanceResult))
-            throw new BankAccountDoesNotExist($accountNumber);
+            throw new BankAccountDoesNotExistException($accountNumber);
         else
             return $accountBalanceResult->balance;
     }
@@ -89,11 +90,11 @@ class SQLBankRepository implements BankRepository
     {
         if ($this->accountExists($account)) {
             $accountNumber = $account->getAccountNumber();
-            throw new \Exception("Account #$accountNumber is already taken");
+            throw new CreateAccountException("Account #$accountNumber is already taken");
         }
 
         if (! $initialBalance->isPositive())
-            throw new \Exception("Initial balance should be positive");
+            throw new CreateAccountException("Initial balance should be positive");
 
         $accountNumber = $account->getAccountNumber();
 
@@ -151,13 +152,13 @@ class SQLBankRepository implements BankRepository
      * @param $transaction
      * @param $account
      *
-     * @throws BankAccountDoesNotExist
+     * @throws BankAccountDoesNotExistException
      */
     private function checkQueryResult($res, $transaction, $account)
     {
         if ($res !== 1) {
             $transaction->rollback();
-            throw new BankAccountDoesNotExist($account);
+            throw new BankAccountDoesNotExistException($account);
         }
     }
 }

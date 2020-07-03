@@ -4,9 +4,8 @@ namespace Controllers;
 
 use App\Bank\Models\Account;
 use App\Bank\Models\Amount;
-use App\Exceptions\BankAccountDoesNotExist;
+use App\Exceptions\BankAccountDoesNotExistException;
 use App\Repositories\BankRepository;
-use App\Repositories\SQLBankRepository;
 use TestCase;
 
 class BankControllerTest extends TestCase
@@ -106,7 +105,8 @@ class BankControllerTest extends TestCase
      * @testWith ["0.00"]
      *           ["10.00"]
      *           ["10.17"]
-     * @throws BankAccountDoesNotExist
+     *
+     * @throws BankAccountDoesNotExistException
      */
     public function testCreateAccount($initialBalance)
     {
@@ -115,7 +115,7 @@ class BankControllerTest extends TestCase
         try {
             $this->bankRepository->getBalance(new Account($newAccountNumber));
             $this->fail('Account exists');
-        } catch (BankAccountDoesNotExist $e) {
+        } catch (BankAccountDoesNotExistException $e) {
 
         }
         $response = $this->post(route('bank.createAccount', [

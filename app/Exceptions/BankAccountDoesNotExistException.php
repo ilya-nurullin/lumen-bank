@@ -2,7 +2,7 @@
 
 namespace App\Exceptions;
 
-class NotEnoughMoney extends \Exception
+class BankAccountDoesNotExistException extends \Exception
 {
     /**
      * BankAccountDoesNotExists constructor.
@@ -11,6 +11,6 @@ class NotEnoughMoney extends \Exception
      */
     public function __construct(string $bankAccount)
     {
-        parent::__construct("There is not enough money in the Bank account #$bankAccount");
+        parent::__construct("Bank account #$bankAccount does not exist");
     }
 }
