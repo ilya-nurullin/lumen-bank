@@ -63,7 +63,8 @@ class BankController extends Controller
         } catch (NotEnoughMoney $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         } catch (\Throwable $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            app('log')->error($e->getMessage(), $e->getTrace());
+            return response()->json(['error' => 'Internal Server Error'], 500);
         }
     }
 
@@ -87,7 +88,8 @@ class BankController extends Controller
             else
                 return response()->json(['status' => 'failed'], 500);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 400);
+            app('log')->error($e->getMessage(), $e->getTrace());
+            return response()->json(['error' => 'Internal Server Error'], 400);
         }
     }
 }

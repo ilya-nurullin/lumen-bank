@@ -40,24 +40,23 @@ class SQLBankRepository implements BankRepository
                 throw new NotEnoughMoney($fromAccountNumber);
             }
 
-            $fromResult = $this->db->update("UPDATE accounts SET balance = balance - ? WHERE account_number = ?", [
-                    $amount,
-                    $fromAccountNumber,
-                ]);
+            if ($from->getAccountNumber() > $to->getAccountNumber()) {
+                $firstQueryResult = $this->subMoney($amount, $fromAccountNumber);
+                $this->checkQueryResult($firstQueryResult, $transaction, $fromAccountNumber);
 
-            if ($fromResult !== 1)
-                throw new BankAccountDoesNotExist($fromAccountNumber);
+                $secondQueryResult = $this->addMoney($amount, $toAccountNumber);
+                $this->checkQueryResult($secondQueryResult, $transaction, $toAccountNumber);
+            }
+            else {
+                $firstQueryResult = $this->addMoney($amount, $toAccountNumber);
+                $this->checkQueryResult($firstQueryResult, $transaction, $toAccountNumber);
 
-            $toResult = $this->db->update("UPDATE accounts SET balance = balance + ? WHERE account_number = ?", [
-                    $amount,
-                    $toAccountNumber,
-                ]);
-
-            if ($toResult !== 1)
-                throw new BankAccountDoesNotExist($toAccountNumber);
+                $secondQueryResult = $this->subMoney($amount, $fromAccountNumber);
+                $this->checkQueryResult($secondQueryResult, $transaction, $fromAccountNumber);
+            }
 
             return true;
-        });
+        }, 3);
     }
 
     /**
@@ -106,6 +105,11 @@ class SQLBankRepository implements BankRepository
         return true;
     }
 
+    /**
+     * @param Account $account
+     *
+     * @return bool
+     */
     public function accountExists(Account $account): bool
     {
         $accountNumber = $account->getAccountNumber();
@@ -114,5 +118,46 @@ class SQLBankRepository implements BankRepository
             [$accountNumber]);
 
         return intval($countResult->count) === 1;
+    }
+
+    /**
+     * @param        $amount
+     * @param string $accountNumber
+     *
+     * @return int
+     */
+    private function addMoney($amount, string $accountNumber) {
+        return $this->db->update("UPDATE accounts SET balance = balance + ? WHERE account_number = ?", [
+            $amount,
+            $accountNumber,
+            ]);
+    }
+
+    /**
+     * @param        $amount
+     * @param string $accountNumber
+     *
+     * @return int
+     */
+    private function subMoney($amount, string $accountNumber) {
+        return $this->db->update("UPDATE accounts SET balance = balance - ? WHERE account_number = ?", [
+            $amount,
+            $accountNumber,
+            ]);
+    }
+
+    /**
+     * @param $res
+     * @param $transaction
+     * @param $account
+     *
+     * @throws BankAccountDoesNotExist
+     */
+    private function checkQueryResult($res, $transaction, $account)
+    {
+        if ($res !== 1) {
+            $transaction->rollback();
+            throw new BankAccountDoesNotExist($account);
+        }
     }
 }
