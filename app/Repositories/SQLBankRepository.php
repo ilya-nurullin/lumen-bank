@@ -70,7 +70,7 @@ class SQLBankRepository implements BankRepository
     {
         $accountNumber = $account->getAccountNumber();
 
-        $accountBalanceResult = $this->db->selectOne('SELECT balance from accounts where account_number = ?',
+        $accountBalanceResult = $this->db->selectOne('SELECT balance FROM accounts WHERE account_number = ? FOR UPDATE',
             [$accountNumber]);
 
         if (is_null($accountBalanceResult))
